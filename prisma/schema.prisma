@@ -21,6 +21,7 @@ model User {
   phone              String? @unique  @db.VarChar(15)
   hashedPassword     String
   hashedRefreshToken String?
+  is_active Boolean @default(true)
 
   createAt DateTime @default(now())
   uptadeAt DateTime @updatedAt

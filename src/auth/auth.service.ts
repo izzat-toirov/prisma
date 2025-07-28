@@ -13,6 +13,8 @@ import { UsersService } from '../users/users.service';
 import { User } from '../../generated/prisma';
 import * as bcrypt from 'bcrypt';
 import { Response } from 'express';
+import { JWTPload, ResponseFields, Tokens } from '../common/types';
+import { use } from 'passport';
 
 @Injectable()
 export class AuthService {
@@ -22,10 +24,11 @@ export class AuthService {
     private readonly usersService: UsersService,
   ) {}
 
-  private async generateTokens(user: User) {
-    const payload = {
+  private async generateTokens(user: User): Promise<Tokens> {
+    const payload: JWTPload = {
       id: user.id,
       email: user.email,
+      is_active: user.is_active
     };
 
     const [accessToken, refreshToken] = await Promise.all([
@@ -59,7 +62,7 @@ export class AuthService {
     };
   }
 
-  async signIn(signInUserDto: SignInUserDto, res: Response) {
+  async signIn(signInUserDto: SignInUserDto, res: Response): Promise<ResponseFields> {
     const { email, password } = signInUserDto;
     const user = await this.prismaService.user.findUnique({ where: { email } });
 
@@ -114,15 +117,12 @@ export class AuthService {
 
   async refreshToken(
     userId: number,
-    refreshTokenFromCookie: string,
+    refreshToken: string,
     res: Response,
-  ) {
-    const decodedToken = this.jwtService.decode(refreshTokenFromCookie) as {
-      id: number;
-      email: string;
-    };
+  ): Promise<ResponseFields> {
+    const user1 = this.prismaService.user.findUnique({where: {id: userId}})
 
-    if (!decodedToken || userId !== decodedToken.id) {
+    if (!user1 || !user1.ha) {
       throw new ForbiddenException('Ruxsat etilmagan');
     }
 

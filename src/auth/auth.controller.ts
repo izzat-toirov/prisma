@@ -36,13 +36,14 @@ export class AuthController {
     return this.authService.signIn(signInUserDto, res);
   }
 
+  @UseGuards(RefreshTokenGuard)
   @HttpCode(200)
   @Post('signOut')
   @HttpCode(HttpStatus.OK)
   async signOut(
     @GetCurrentUserId() userId: number,
     @Res({ passthrough: true }) res: Response
-  ): Promise<boolean> {
+  ) {
     return this.authService.signOut(+userId, res);
   }
 
@@ -54,6 +55,6 @@ export class AuthController {
     @GetCurrentUser("refreshToken") refreshToken: string,
     @Res({ passthrough: true }) res: Response,
   ): Promise<ResponseFields> {
-    return this.authService.refreshToken(+userId, refreshToken, res);
+    return this.authService.refresh_token(+userId, refreshToken, res);
   }
 }
